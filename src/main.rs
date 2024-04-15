@@ -1,10 +1,11 @@
 use serenity::{all::{EventHandler, GatewayIntents, Message}, async_trait, Client};
+use commands::join::join;
+use commands::leave::leave;
 use std::env;
 
+pub mod commands;
+
 struct Handler;
-struct Data {}
-type Error = Box<dyn std::error::Error + Send + Sync>;
-type Context<'a> = poise::Context<'a, Data, Error>;
 
 #[async_trait]
 impl EventHandler for Handler {
@@ -17,17 +18,6 @@ impl EventHandler for Handler {
     }
 }
 
-#[poise::command(slash_command, prefix_command)]
-async fn age(
-    ctx: Context<'_>,
-    #[description = "Selected user"] user: Option<poise::serenity_prelude::User>,
-) -> Result<(), Error> {
-    let user = user.as_ref().unwrap_or_else(|| ctx.author());
-    let response = format!("{}'s account was created at {}", user.name, user.created_at());
-    ctx.say(response).await?;
-    Ok(())
-}
-
 #[tokio::main]
 async fn main() {
     let token = env::var("DISCORD_TOKEN")
@@ -38,13 +28,16 @@ async fn main() {
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![age()],
+            commands: vec![
+                join(),
+                leave(),
+            ],
             ..Default::default()
         })
         .setup(|ctx, _ready, framework| {
             Box::pin(async move {
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
-                Ok(Data {})
+                Ok(crate::commands::Data {})
             })
         })
         .build();
