@@ -1,6 +1,7 @@
 use serenity::{all::{EventHandler, GatewayIntents, Message}, async_trait, Client};
 use commands::join::join;
 use commands::leave::leave;
+use songbird::SerenityInit;
 use std::env;
 
 pub mod commands;
@@ -45,9 +46,13 @@ async fn main() {
     let mut client = Client::builder(&token, intents)
         .event_handler(Handler)
         .framework(framework)
-        .await.expect("Error creating client");
+        .register_songbird()
+        .await
+        .expect("Error creating client");
     
-    if let Err(why) = client.start().await {
-        println!("Client error: {:?}", why);
-    }
+    if let Err(why) = client
+        .start()
+        .await {
+            println!("Client error: {:?}", why);
+        }
 }
